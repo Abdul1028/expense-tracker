@@ -164,7 +164,6 @@ const ExpenseSplitter = () => {
 
       <button  onClick={(e) => setShowDebts(true)}  >Show Debts</button>
 
-
       {/* Display Debts Automatically */}
       <div>
         <h3>Debts</h3>
