@@ -6,6 +6,7 @@ import Orb from './Components/Orb/Orb'
 import Navigation from './Components/Navigation/Navigation'
 import Dashboard from './Components/Dashboard/Dashboard';
 import Income from './Components/Income/Income'
+import Home from './Components/Home'
 import Expenses from './Components/Expenses/Expenses';
 import Speech from './Components/Speech/SpeechToText';
 import { useGlobalContext } from './context/globalContext';
@@ -28,6 +29,8 @@ function App() {
         return <Expenses />
       case 5:
         return <Speech/>
+      case 6:
+          return <Home/>
       default: 
         return <Dashboard />
     }

@@ -34,7 +34,7 @@ export const menuItems = [
     },
     {
         id: 6,
-        title: "Try",
+        title: "Splitter",
         icon: expenses,
         link: "/dashboard",
     }
