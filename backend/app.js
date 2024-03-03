@@ -145,27 +145,100 @@ const server = () => {
     res.send(response.choices[0].message.content);
   });
 
+  // app.get("/speechToAttributes", async (req, res) => {
+  //   try {
+  //     console.log("hit");
+  //     const prompt = req.query.userPrompt;
+  //     const requiredWords = ["titled", "income", "expense", "category"];
+  
+  //     // Check if the prompt includes all required words
+  //     const hasAllWords = requiredWords.every(word => prompt.includes(word));
+  //     if (!hasAllWords) {
+  //       console.log("f");
+  //       res.send("Matching words missing, please speak again!");
+  //       return; // Stop further processing
+  //     }
+  
+  //     const custom_prompt =
+  //       prompt +
+  //       " , with the above given query extract expense title amount and title Note: You will only give the extracted words as answer in format of json like this {retrieved title from query,retrieved amount from query ,retrieved category from query} no explanations and other words would be given in response for an instance if query is 'Add an expense of 50000 in category clubbing titled as Others' then answer would be only {Others, 50000, clubbing} and if in case query doesn't contain this followig listed words like 'add an expense','category','titled' and you think amount is not given respond with you forgot to tell me about the title amount or category please speak again ";
+  
+  //     const result = await model.generateContent(custom_prompt);
+  //     const response = await result.response;
+  //     const data = response.text();
+  //     console.log(data);
+  //     res.send(data);
+  //   } catch (error) {
+  //     console.error("Error generating content:", error);
+  //     res.status(500).send("Internal Server Error");
+  //   }
+  // });
 
-  app.get("/speechToAttributess", async (req, res) => {
+
+  app.get("/speechToAttributes", async (req, res) => {
     try {
       console.log("hit");
       const prompt = req.query.userPrompt;
-      const custom_prompt =
-        prompt +
-        " , with the above given query extract expense title amount and title Note: You will only give the extracted words as answer in format of json like this {retrieved title from query,retrieved amount from query ,retrieved category from query} no explanations and other words would be given in response for an instance if query is 'Add an expense of 50000 in category clubbing titled as Others' then answer would be only {Others, 50000, clubbing} and if in case query doesn't contain this followig listed words like 'add an expense','category','titled' and you think amount is not given respond with you forgot to tell me about the title amount or category please speak again ";
-      // console.log(custom_prompt);
+      const requiredWords = ["titled", "category", "description"];
   
-      if (!prompt.includes("titled")) {
-        console.log("f");
-        res.send("matching words missing please speak again!");
-      } else {
-        // Assuming model.generateContent returns a Promise
-        const result = await model.generateContent(custom_prompt);
-        const response = await result.response;
-        const data = response.text();
-        console.log(data);
-        res.send(data);
+      // Check if either "income" or "expense" is present in the prompt
+      const hasIncome = prompt.includes("income");
+      const hasExpense = prompt.includes("expense");
+      if (hasIncome && hasExpense) {
+        res.send("Cannot have both 'income' and 'expense' in the prompt, please speak again!");
+        return; // Stop further processing
       }
+  
+      // Add "income" or "expense" based on the absence of the other
+      if (hasIncome || hasExpense) {
+        requiredWords.push(hasIncome ? "income" : "expense");
+      }
+
+      // if (!hasIncome && !hasExpense){
+      //   res.send("It is an expense or income ?")
+      // }
+
+      if (!hasIncome && !hasExpense) {
+        res.send("Please specify whether it is an income or expense.");
+        return; // Stop further processing
+      }
+      
+      
+  
+      // Check if the prompt includes all required words
+      const missingWords = requiredWords.filter(word => !prompt.includes(word));
+      if (missingWords.length > 0) {
+        console.log("f", missingWords);
+        res.send(`Matching words (${missingWords.join(', ')}) missing, please speak again!`);
+        return; // Stop further processing
+      }
+
+      const custom_prompt =
+  prompt +
+  " , with the above given query extract expense title amount description and type (income/expense) Note: You will only give the extracted words as an answer in the format of JSON like this {retrieved title from query, retrieved amount from query, retrieved category from query, retrieved description from query, retrieved type from query (income/expense)}. No explanations and other words would be given in the response. For instance, if the query is 'Add an expense of 50000 in category clubbing titled as Others with a description of party', then the answer would be only {Others, 50000, clubbing, party, expense}. If the query doesn't contain the following listed words like 'add an expense', 'category', 'titled', and 'description', or if you think the amount is not given, respond with 'You forgot to tell me about the title, amount, category, description, or type (income/expense). Please speak again.'";
+
+
+      const result = await model.generateContent(custom_prompt);
+      const response = await result.response;
+      const data = response.text();
+      console.log(data);
+      // res.send(data);
+
+      const responseData = data.slice(1, -1).split(', ');
+
+  // Extract data from the parsed array
+  const [title, amount, category, description, type] = responseData;
+
+  // Now you can use the extracted data as needed
+  console.log('Title:', title);
+  console.log('Amount:', amount);
+  console.log('Category:', category);
+  console.log('Description:', description);
+  console.log('Type:', type);
+
+  res.send(responseData)
+
+
     } catch (error) {
       console.error("Error generating content:", error);
       res.status(500).send("Internal Server Error");
@@ -173,29 +246,6 @@ const server = () => {
   });
   
 
-  app.get("/speechToAttributes", async (req, res) => {
-    try {
-      console.log("hit")
-      const prompt =  req.query.userPrompt;
-      custom_prompt =
-        prompt +
-        " , with the above given query extract expense title amount and title Note: You will only give the extracted words as answer in format of json like this {retrieved title from query,retrieved amount from query ,retrieved category from query} no explanations and other words would be given in response for an instance if query is 'Add an expense of 50000 in category clubbing titled as Others' then answer would be only {Others, 50000, clubbing} and if in case query doesn't contain this followig listed words like 'add an expense','category','titled' and you think amount is not given respond with you forgot to tell me about the title amount or category please speak again ";
-      // console.log(custom_prompt);
-
-      if (!prompt.includes("titled")) {
-        console.log("f");
-        res.send("matching words missing please speak again!");
-      } else {
-        const result = await model.generateContent(custom_prompt);
-        const response = await result.response;
-        const data = response.text();
-        console.log(data);
-        res.send(data);
-      }
-    } catch (error) {
-      console.error("Error generating content:", error);
-    }
-  });
 
   db();
   app.listen(PORT, () => {
